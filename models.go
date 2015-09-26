@@ -89,10 +89,11 @@ type Chat struct {
 type Link struct {
     // Model
     Id        int       `json:"id"`
-    User      User      `json:"user"`
-    URL       URL       `json:"url"`
+    User      User      `json:"user", sql:"json"`
+    URL       URL       `json:"url", sql:"json"`
     Created   Timestamp `json:"created"`
-    Tags      []string  `json:"tags"`
+    Chat      Chat      `json:"chat"`
+    Tags      []string  `json:"tags", sql:"json"`
 }
 
 type URL struct {
