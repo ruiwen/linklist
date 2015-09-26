@@ -70,24 +70,10 @@ func main() {
             url.Parse()
 
             // Insert into DB
-            // var data []byte
-            // if data, err = json.Marshal(url.URL); err != nil {
-            //     log.Fatal(err)
-            // }
-            // fmt.Println(string(data[:]))
-
-            fmt.Println(update.Message.Date)
-            fmt.Printf("url: %s | %s\n", url, Model{M: &url}.ToJSON())
-            fmt.Printf("person: %s | %s\n", update.Message.From, Model{M: &update.Message.From}.ToJSON())
             if _, err = db.Exec("INSERT INTO links (person, url, created, chat) VALUES ($1, $2, $3, $4)", Model{M: &update.Message.From}.ToJSON(), Model{M: &url}.ToJSON(), update.Message.Date.Time(), update.Message.Chat.Id); err != nil {
                 log.Fatal(err)
             }
         }
-        // if _, err = db.Exec("INSERT INTO links (url) VALUES ($1)", data); err != nil {
-        //     fmt.Println(err)
-        //     log.Fatal(err)
-        // }
-
 
         c.JSON(200, gin.H{"success": true})
 
@@ -145,17 +131,17 @@ func main() {
 
     })
 
-    router.GET("/:action/user", func(c *gin.Context) {
+    // router.GET("/:action/user", func(c *gin.Context) {
 
-        action := c.Params.ByName("action")
-        c.JSON(200, gin.H{"action": action, "end": "user"})
-    })
+    //     action := c.Params.ByName("action")
+    //     c.JSON(200, gin.H{"action": action, "end": "user"})
+    // })
 
-    router.GET("/:action/duh", func(c *gin.Context) {
+    // router.GET("/:action/duh", func(c *gin.Context) {
 
-        action := c.Params.ByName("action")
-        c.JSON(200, gin.H{"action": action, "end": "duh"})
-    })
+    //     action := c.Params.ByName("action")
+    //     c.JSON(200, gin.H{"action": action, "end": "duh"})
+    // })
 
 
     // router.GET("/ping", func(c *gin.Context) {
