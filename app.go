@@ -1,10 +1,11 @@
 package main
 
 import (
-    // "encoding/json"
+    "encoding/json"
     "log"
     "fmt"
     "strings"
+    "time"
     // "regexp"
     // "reflect"
     "database/sql"
@@ -47,6 +48,88 @@ func main() {
 
 
     router := gin.Default()
+
+    router.POST("/retrieve", func(c *gin.Context) {
+
+        update := Update{}
+        e := c.BindJSON(&update)
+        if e != nil {
+            log.Fatal(e)
+        }
+
+        if strings.HasPrefix(update.Message.Text, "/retrieve") {
+            components := strings.SplitN(update.Message.Text, " ", 5)
+            object := components[1]
+            field := components[2]
+            value := components[3]
+
+            fmt.Printf("Object: -%s-, Field: -%s-, Value: -%s-\n", object, field, value)
+
+            var rows *sql.Rows
+            var err error
+            if object == "user" {
+                fmt.Println("Object: user\n")
+                rows, err = db.Query(`SELECT * FROM links WHERE person->>$1 = $2`, field, value)
+            } else {
+                fmt.Println("Object: others\n")
+                rows, err = db.Query(`SELECT * FROM links WHERE url->>$1 = $2`, field, value)
+            }
+
+            fmt.Println("Rows retrieved\n")
+            fmt.Printf("Error: %s\n", err)
+            if err != nil {
+                log.Fatal(e)
+            }
+            defer rows.Close()
+
+            fmt.Println("Scanning..\n")
+            links := []Link{}
+            var userTmp json.RawMessage
+            var urlTmp json.RawMessage
+            var createdTmp time.Time
+            var tagsTmp sql.NullString
+            for rows.Next() {
+                var link Link
+                err := rows.Scan(
+                    &link.Id,
+                    &userTmp,
+                    &urlTmp,
+                    &createdTmp,
+                    &link.Chat.Id,
+                    &tagsTmp)
+
+                // err := rows.Scan(
+                //     &link.Id,
+                //     &link.User,
+                //     &link.URL,
+                //     &createdTmp,
+                //     &link.Chat.Id,
+                //     &link.Tags)
+
+
+
+                if err != nil {
+                    log.Fatal(err)
+                }
+
+                // link.User = User(userTmp)
+                json.Unmarshal(userTmp, &link.User)
+                json.Unmarshal(urlTmp, &link.URL)
+                fmt.Printf("createdTmp: -%s-\n", createdTmp)
+                link.Created = Timestamp(createdTmp)
+                fmt.Printf("tags: %s\n", tagsTmp)
+                // json.Unmarshal(createdTmp, &link.Created)
+                // userTmp.UnmarshalJSON(&link.User)
+                // link.URL = *urlTmp
+                // link.Created = *createdTmp
+                // link.Tags = *tagsTmp
+
+                fmt.Println("Appending.. %s\n", link)
+                links = append(links, link)
+            }
+            c.JSON(200, gin.H{"links": Model{M: &links}})
+        }
+    })
 
     router.POST("/save", func(c *gin.Context) {
 
